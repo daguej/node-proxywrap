@@ -1,0 +1,22 @@
+{
+  "name": "proxywrap",
+  "version": "0.1.0",
+  "description": "Wraps node's Server interfaces to be compatible with the PROXY protocol",
+  "main": "proxywrap.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/daguej/node-proxywrap"
+  },
+  "keywords": [
+    "proxy",
+    "elb"
+  ],
+  "author": "Josh Dague",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/daguej/node-proxywrap/issues"
+  }
+}
