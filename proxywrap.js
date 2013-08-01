@@ -95,7 +95,6 @@ exports.proxy = function(iface) {
 			// restore normal socket functionality, and fire any events that were emitted while we had control of emit()
 			socket.emit = realEmit;
 			for (var i = 0; i < history.length; i++) {
-				console.log(history[i]);
 				realEmit.apply(socket, history[i]);
 				if (history[i][0] == 'end' && socket.onend) socket.onend();
 			}
