@@ -29,7 +29,7 @@ var util = require('util');
 //var legacy = !require('stream').Duplex;  // TODO: Support <= 0.8 streams interface
 
 // Wraps the given module (ie, http, https, net, tls, etc) interface so that
-// `socket.remoteAddress` and `remotePort` work correctly when used with the
+// `socket.sourceAddress` and `sourcePort` work correctly when used with the
 // PROXY protocol (http://haproxy.1wt.eu/download/1.5/doc/proxy-protocol.txt)
 exports.proxy = function(iface) {
 	var exports = {};
@@ -66,7 +66,7 @@ exports.proxy = function(iface) {
 
 	exports.createServer = function(opts, requestListener) {
 		return new ProxiedServer(opts, requestListener);
-	}
+	};
 
 	exports.Server = ProxiedServer;
 
@@ -88,7 +88,7 @@ exports.proxy = function(iface) {
 			} else*/ if (event == 'readable') {
 				onReadable();
 			}
-		}
+		};
 
 		function restore() {
 			//if (legacy) socket.removeListener('data', ondata);
@@ -106,7 +106,7 @@ exports.proxy = function(iface) {
 		var header = '', buf = new Buffer(0);
 		function onReadable() {
 			var chunk;
-			while (null != (chunk = socket.read())) {
+			while (null !== (chunk = socket.read())) {
 				buf = Buffer.concat([buf, chunk]);
 				header += chunk.toString('ascii');
 
@@ -121,18 +121,35 @@ exports.proxy = function(iface) {
 					var hlen = header.length;
 					header = header.split(' ');
 
-					Object.defineProperty(socket, 'remoteAddress', {
+					Object.defineProperty(socket, 'sourceAddress', {
 						enumerable: false,
 						configurable: true,
 						get: function() {
 							return header[2];
 						}
 					});
-					Object.defineProperty(socket, 'remotePort', {
+
+					Object.defineProperty(socket, 'destinationAddress', {
+						enumerable: false,
+						configurable: true,
+						get: function() {
+							return header[3];
+						}
+					});
+ 
+					Object.defineProperty(socket, 'sourcePort', {
 						enumerable: false,
 						configurable: true,
 						get: function() {
 							return parseInt(header[4], 10);
+						}
+					});
+
+					Object.defineProperty(socket, 'destinationPort', {
+						enumerable: false,
+						configurable: true,
+						get: function() {
+							return parseInt(header[5], 10);
 						}
 					});
 
@@ -160,4 +177,4 @@ exports.proxy = function(iface) {
 	}
 
 	return exports;
-}
+};
