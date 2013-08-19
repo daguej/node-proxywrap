@@ -1,7 +1,14 @@
 node-proxywrap
 ==============
 
-This module wraps node's various `Server` interfaces so that they are compatible with the [PROXY protocol](http://haproxy.1wt.eu/download/1.5/doc/proxy-protocol.txt).  It automatically parses the PROXY headers and resets `socket.remoteAddress` and `socket.remotePort` so that they have the correct values.
+This module wraps node's various `Server` interfaces so that they are compatible with the [PROXY protocol](http://haproxy.1wt.eu/download/1.5/doc/proxy-protocol.txt). It automatically parses the PROXY headers and resets the following socket properties so that they have the correct values:
+
+    socket.sourceAddress
+    socket.sourcePort
+    socket.destinationAddress
+    socket.destinationPort
+
+Install it with:
 
     npm install proxywrap
 
@@ -23,7 +30,8 @@ proxywrap is a drop-in replacement.  Here's a simple Express app:
         , srv = proxiedHttp.createServer(app); // instead of http.createServer(app)
 
     app.get('/', function(req, res) {
-        res.send('IP = ' + req.connection.remoteAddress + ':' + req.connection.remotePort);
+        res.send('FROM IP = ' + req.connection.sourceAddress      + ':' + req.connection.sourcePort);
+        res.send('  TO IP = ' + req.connection.destinationAddress + ':' + req.connection.destinationPort);
     });
 
     srv.listen(80);

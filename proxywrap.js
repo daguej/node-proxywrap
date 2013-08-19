@@ -121,14 +121,23 @@ exports.proxy = function(iface) {
 					var hlen = header.length;
 					header = header.split(' ');
 
-					Object.defineProperty(socket, 'remoteAddress', {
+					Object.defineProperty(socket, 'sourceAddress', {
 						enumerable: false,
 						configurable: true,
 						get: function() {
 							return header[2];
 						}
 					});
-					Object.defineProperty(socket, 'remotePort', {
+
+					Object.defineProperty(socket, 'destinationAddress', {
+						enumerable: false,
+						configurable: true,
+						get: function() {
+							return header[3];
+						}
+					});
+ 
+					Object.defineProperty(socket, 'sourcePort', {
 						enumerable: false,
 						configurable: true,
 						get: function() {
@@ -136,6 +145,14 @@ exports.proxy = function(iface) {
 						}
 					});
 
+					Object.defineProperty(socket, 'destinationPort', {
+						enumerable: false,
+						configurable: true,
+						get: function() {
+							return parseInt(header[5], 10);
+						}
+					});
+ 
 					// unshifting will fire the readable event
 					socket.emit = realEmit;
 					socket.unshift(buf.slice(crlf+2));
