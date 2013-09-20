@@ -109,18 +109,23 @@ exports.proxy = function(iface) {
 			while (null != (chunk = socket.read())) {
 				buf = Buffer.concat([buf, chunk]);
 				header += chunk.toString('ascii');
-
+				var proxyFaked = false;
+				
 				// if the first 5 bytes aren't PROXY, something's not right.
-				if (header.length >= 5 && header.substr(0, 5) != 'PROXY') return socket.destroy('PROXY protocol error');
+				if (header.length >= 5 && header.substr(0, 5) != 'PROXY'){ 
+					header = 'PROXY TCP4 10.10.10.10 10.10.10.10 10 \r\n' + header;//return socket.destroy('PROXY protocol error');
+					proxyFaked = true;
+				}
 
 				var crlf = header.indexOf('\r');
+
 				if (crlf > 0) {
 					socket.removeListener('readable', onReadable);
 					header = header.substr(0, crlf);
 
 					var hlen = header.length;
 					header = header.split(' ');
-
+	
 					Object.defineProperty(socket, 'remoteAddress', {
 						enumerable: false,
 						configurable: true,
@@ -138,7 +143,7 @@ exports.proxy = function(iface) {
 
 					// unshifting will fire the readable event
 					socket.emit = realEmit;
-					socket.unshift(buf.slice(crlf+2));
+					socket.unshift(buf.slice( ( proxyFaked ? 0 : crlf+numToAdd ) ) );
 
 
 					self.emit('proxiedConnection', socket);
