@@ -126,24 +126,26 @@ exports.proxy = function(iface) {
 					var hlen = header.length;
 					header = header.split(' ');
 	
-					Object.defineProperty(socket, 'remoteAddress', {
-						enumerable: false,
-						configurable: true,
-						get: function() {
-							return header[2];
-						}
-					});
-					Object.defineProperty(socket, 'remotePort', {
-						enumerable: false,
-						configurable: true,
-						get: function() {
-							return parseInt(header[4], 10);
-						}
-					});
+					if( !proxyFaked ){
+						Object.defineProperty(socket, 'remoteAddress', {
+							enumerable: false,
+							configurable: true,
+							get: function() {
+								return header[2];
+							}
+						});
+						Object.defineProperty(socket, 'remotePort', {
+							enumerable: false,
+							configurable: true,
+							get: function() {
+								return parseInt(header[4], 10);
+							}
+						});
+					}
 
 					// unshifting will fire the readable event
 					socket.emit = realEmit;
-					socket.unshift(buf.slice( ( proxyFaked ? 0 : crlf+numToAdd ) ) );
+					socket.unshift(buf.slice( ( proxyFaked ? 0 : crlf+2 ) ) );
 
 
 					self.emit('proxiedConnection', socket);
