@@ -31,8 +31,16 @@ var util = require('util');
 // Wraps the given module (ie, http, https, net, tls, etc) interface so that
 // `socket.remoteAddress` and `remotePort` work correctly when used with the
 // PROXY protocol (http://haproxy.1wt.eu/download/1.5/doc/proxy-protocol.txt)
-exports.proxy = function(iface) {
+// strict option drops requests without proxy headers, enabled by default to match previous behavior, disable to allow both proxied and non-proxied requests
+exports.proxy = function(iface, strict) {
 	var exports = {};
+
+	if( strict === undefined ){
+		var isStrict = true;
+	}else{
+		var isStrict = strict;
+	}
+
 	// copy iface's exports to myself
 	for (var k in iface) exports[k] = iface[k];
 
@@ -109,36 +117,47 @@ exports.proxy = function(iface) {
 			while (null != (chunk = socket.read())) {
 				buf = Buffer.concat([buf, chunk]);
 				header += chunk.toString('ascii');
-
+				var proxyFaked = false;
+				
 				// if the first 5 bytes aren't PROXY, something's not right.
-				if (header.length >= 5 && header.substr(0, 5) != 'PROXY') return socket.destroy('PROXY protocol error');
+				if (header.length >= 5 && header.substr(0, 5) != 'PROXY'){ 
+					if( isStrict ){
+						return socket.destroy('PROXY protocol error');
+					}else{
+						header = 'PROXY TCP4 10.10.10.10 10.10.10.10 10 \r\n' + header;
+						proxyFaked = true;
+					}
+				}
 
 				var crlf = header.indexOf('\r');
+
 				if (crlf > 0) {
 					socket.removeListener('readable', onReadable);
 					header = header.substr(0, crlf);
 
 					var hlen = header.length;
 					header = header.split(' ');
-
-					Object.defineProperty(socket, 'remoteAddress', {
-						enumerable: false,
-						configurable: true,
-						get: function() {
-							return header[2];
-						}
-					});
-					Object.defineProperty(socket, 'remotePort', {
-						enumerable: false,
-						configurable: true,
-						get: function() {
-							return parseInt(header[4], 10);
-						}
-					});
+	
+					if( !proxyFaked ){
+						Object.defineProperty(socket, 'remoteAddress', {
+							enumerable: false,
+							configurable: true,
+							get: function() {
+								return header[2];
+							}
+						});
+						Object.defineProperty(socket, 'remotePort', {
+							enumerable: false,
+							configurable: true,
+							get: function() {
+								return parseInt(header[4], 10);
+							}
+						});
+					}
 
 					// unshifting will fire the readable event
 					socket.emit = realEmit;
-					socket.unshift(buf.slice(crlf+2));
+					socket.unshift(buf.slice( ( proxyFaked ? 0 : crlf+2 ) ) );
 
 
 					self.emit('proxiedConnection', socket);
