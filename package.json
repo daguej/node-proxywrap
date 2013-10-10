@@ -1,6 +1,6 @@
 {
   "name": "proxywrap",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Wraps node's Server interfaces to be compatible with the PROXY protocol",
   "main": "proxywrap.js",
   "engines": { "node": ">= 0.10.0" },

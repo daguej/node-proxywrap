@@ -36,4 +36,15 @@ You can do the same with `net` (raw TCP streams), `https`, and `spdy`.  It will 
 
     var proxiedSpdy = require('proxywrap').proxy(require('spdy').server);
 
-**Warning:** *All* traffic to your proxied server MUST use the PROXY protocol.  If the first five bytes received aren't `PROXY`, the connection will be dropped.  Obviously, the node server accepting PROXY connections should not be exposed directly to the internet; only the proxy (whether ELB, HAProxy, or something else) should be able to connect to node.
+**Warning:** By default, *all* traffic to your proxied server MUST use the PROXY protocol.  If the first five bytes received aren't `PROXY`, the connection will be dropped.  Obviously, the node server accepting PROXY connections should not be exposed directly to the internet; only the proxy (whether ELB, HAProxy, or something else) should be able to connect to node.
+
+API
+---
+
+### `proxy(Server[, options])`
+
+Wraps something that inherits from the `net` module, exposing a `Server` and `createServer`.  Returns the same module patched to support the PROXY protocol.
+
+Options:
+
+- `strict` (default `true`): Incoming connections MUST use the PROXY protocol.  If the first five bytes received aren't `PROXY`, the connection will be dropped.  Disabling this option will allow connections that don't use the PROXY protocol (so long as the first bytes sent aren't `PROXY`).  Disabling this option poses a security risk; it should be enabled in production.
