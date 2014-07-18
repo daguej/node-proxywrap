@@ -54,11 +54,11 @@ exports.proxy = function(iface, options) {
 			options = null;
 		}
 
-		// iface.Server *requires* an arity of 1; ifaces.Server needs 2
+		// call original constructor with correct argument order
 		if (options) iface.Server.call(this, options, requestListener);
 		else iface.Server.call(this, requestListener);
 
-		// remove the connection listener attached by iface[s].Server and replace it with our own.
+		// remove the connection listener attached by iface.Server and replace it with our own.
 		var cl = this.listeners('connection');
 		this.removeAllListeners('connection');
 		this.addListener('connection', connectionListener);
