@@ -34,7 +34,12 @@ You can do the same with `net` (raw TCP streams), `https`, and `spdy`.  It will 
 
 *Note*: If you're wrapping [node-spdy](https://github.com/indutny/node-spdy), its exports are a little strange:
 
-    var proxiedSpdy = require('proxywrap').proxy(require('spdy').server);
+    var spdy = require('spdy');
+    var proxiedSpdy = require('proxywrap').proxy(spdy.server);
+    var express = require('express');
+    var app = express();
+    var srv = proxiedSpdy.create(spdyOpts, app);
+    srv.listen(80);
 
 **Warning:** By default, *all* traffic to your proxied server MUST use the PROXY protocol.  If the first five bytes received aren't `PROXY`, the connection will be dropped.  Obviously, the node server accepting PROXY connections should not be exposed directly to the internet; only the proxy (whether ELB, HAProxy, or something else) should be able to connect to node.
 
