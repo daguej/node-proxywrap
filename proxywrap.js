@@ -136,6 +136,8 @@ exports.proxy = function(iface, options) {
 					header = header.split(' ');
 	
 					if (!protocolError) {
+
+						// Source properties of TCP connection 
 						Object.defineProperty(socket, 'remoteAddress', {
 							enumerable: false,
 							configurable: true,
@@ -148,6 +150,22 @@ exports.proxy = function(iface, options) {
 							configurable: true,
 							get: function() {
 								return parseInt(header[4], 10);
+							}
+						});
+
+						// Destination properties of TCP connection 
+						Object.defineProperty(socket, 'proxyAddress', {
+							enumerable: false,
+							configurable: true,
+							get: function() {
+								return header[3];
+							}
+						});
+						Object.defineProperty(socket, 'proxyPort', {
+							enumerable: false,
+							configurable: true,
+							get: function() {
+								return parseInt(header[5], 10);
 							}
 						});
 					}
